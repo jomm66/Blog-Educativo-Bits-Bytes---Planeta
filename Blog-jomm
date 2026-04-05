@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bits, Bytes y Planeta — Blog Educativo de Tecnología</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Playfair+Display:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #006400;
+    --green-light: #007a00;
+    --green-glow: rgba(0,100,0,0.15);
+    --blue: #0077B6;
+    --blue-light: #0096e0;
+    --blue-glow: rgba(0,119,182,0.15);
+    --bg: #f7f8fa;
+    --bg-alt: #ffffff;
+    --text: #1a1a2e;
+    --text-light: #4a4a6a;
+    --text-muted: #8a8aaa;
+    --border: #e2e4e8;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+    --radius: 14px;
+    --radius-lg: 22px;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ══════════ NAV ══════════ */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(20px) saturate(1.8);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    transition: all 0.3s;
+  }
+  .nav.scrolled { box-shadow: 0 2px 24px rgba(0,0,0,0.08); }
+  .nav-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 64px;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800; font-size: 1.15rem;
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    cursor: pointer; white-space: nowrap;
+    position: relative;
+  }
+  .nav-logo::after {
+    content: ''; position: absolute; bottom: -2px; left: 0;
+    width: 100%; height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--green), var(--blue));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .nav-logo:hover::after { transform: scaleX(1); }
+  .nav-links { display: flex; gap: 2px; list-style: none; }
+  .nav-links a {
+    text-decoration: none; color: var(--text-light);
+    font-size: 0.84rem; font-weight: 500;
+    padding: 8px 14px; border-radius: 10px;
+    transition: all 0.25s; position: relative;
+  }
+  .nav-links a:hover { color: var(--green); background: rgba(0,100,0,0.06); }
+  .nav-links a.active {
+    color: #fff; background: linear-gradient(135deg, var(--green), var(--blue));
+    box-shadow: 0 2px 12px rgba(0,100,0,0.25);
+  }
+  .hamburger {
+    display: none; background: none; border: none; cursor: pointer;
+    width: 40px; height: 40px; position: relative;
+    border-radius: 10px; transition: background 0.2s;
+  }
+  .hamburger:hover { background: rgba(0,0,0,0.04); }
+  .hamburger span {
+    display: block; width: 20px; height: 2px;
+    background: var(--text); border-radius: 2px;
+    position: absolute; left: 10px; transition: all 0.3s;
+  }
+  .hamburger span:nth-child(1) { top: 12px; }
+  .hamburger span:nth-child(2) { top: 19px; }
+  .hamburger span:nth-child(3) { top: 26px; }
+  .hamburger.open span:nth-child(1) { transform: rotate(45deg); top: 19px; }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: rotate(-45deg); top: 19px; }
+
+  @media (max-width: 900px) {
+    .hamburger { display: block; }
+    .nav-links {
+      display: none; flex-direction: column;
+      position: absolute; top: 64px; left: 0; right: 0;
+      background: rgba(255,255,255,0.98);
+      backdrop-filter: blur(20px);
+      padding: 12px 16px; gap: 4px;
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+    }
+    .nav-links.open { display: flex; }
+    .nav-links a { padding: 14px 18px; font-size: 0.95rem; border-radius: 12px; }
+  }
+
+  /* ══════════ PAGES ══════════ */
+  .page { display: none; min-height: 100vh; padding-top: 64px; }
+  .page.active { display: block; animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ══════════ HERO HOME ══════════ */
+  .hero {
+    position: relative; overflow: hidden;
+    background: linear-gradient(160deg, #003300 0%, var(--green) 30%, #004d40 60%, var(--blue) 100%);
+    padding: 100px 24px 80px; text-align: center; color: #fff;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 20% 50%, rgba(0,200,100,0.12), transparent),
+      radial-gradient(ellipse 500px 500px at 80% 30%, rgba(0,119,182,0.15), transparent);
+  }
+  .hero::after {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='40' cy='40' r='1.5' fill='rgba(255,255,255,0.08)'/%3E%3C/svg%3E");
+  }
+  .hero-orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(60px); opacity: 0.3;
+    animation: float 8s ease-in-out infinite;
+  }
+  .hero-orb.orb1 {
+    width: 300px; height: 300px; background: #00c853;
+    top: -80px; left: -60px; animation-delay: 0s;
+  }
+  .hero-orb.orb2 {
+    width: 250px; height: 250px; background: var(--blue);
+    bottom: -60px; right: -40px; animation-delay: -3s;
+  }
+  .hero-orb.orb3 {
+    width: 180px; height: 180px; background: #00bcd4;
+    top: 40%; left: 60%; animation-delay: -5s;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.05); }
+  }
+  .hero-content { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 20px; border-radius: 100px;
+    font-size: 0.76rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(10px);
+  }
+  .hero-badge .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #00e676; animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+    font-weight: 800; line-height: 1.15; margin-bottom: 12px;
+    text-shadow: 0 2px 40px rgba(0,0,0,0.3);
+  }
+  .hero h1 .accent {
+    background: linear-gradient(90deg, #69f0ae, #40c4ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero .subtitle {
+    font-size: 1.1rem; font-weight: 500; color: rgba(255,255,255,0.7);
+    margin-bottom: 20px; letter-spacing: 0.3px;
+  }
+  .hero p {
+    font-size: 1rem; line-height: 1.8;
+    color: rgba(255,255,255,0.8); max-width: 640px; margin: 0 auto;
+  }
+  .hero-divider {
+    width: 60px; height: 3px; margin: 24px auto 20px;
+    background: linear-gradient(90deg, #69f0ae, #40c4ff);
+    border-radius: 3px;
+  }
+
+  /* ══════════ CARDS ══════════ */
+  .cards-section {
+    max-width: 1200px; margin: 0 auto; padding: 72px 24px;
+    position: relative;
+  }
+  .cards-section::before {
+    content: ''; position: absolute;
+    width: 400px; height: 400px; border-radius: 50%;
+    background: radial-gradient(circle, var(--green-glow), transparent 70%);
+    top: -100px; left: -200px; pointer-events: none;
+  }
+  .cards-section::after {
+    content: ''; position: absolute;
+    width: 350px; height: 350px; border-radius: 50%;
+    background: radial-gradient(circle, var(--blue-glow), transparent 70%);
+    bottom: -80px; right: -150px; pointer-events: none;
+  }
+  .section-header { text-align: center; margin-bottom: 52px; position: relative; z-index: 1; }
+  .section-label {
+    font-size: 0.73rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 3px;
+    color: var(--blue); margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+  }
+  .section-label::before, .section-label::after {
+    content: ''; width: 40px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--blue));
+  }
+  .section-label::after { background: linear-gradient(90deg, var(--blue), transparent); }
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.1rem; font-weight: 700;
+  }
+  .cards-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+    gap: 32px; position: relative; z-index: 1;
+  }
+  .card {
+    background: var(--bg-alt); border-radius: var(--radius-lg);
+    overflow: hidden; cursor: pointer; border: 1px solid var(--border);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
+  }
+  .card::before {
+    content: ''; position: absolute; inset: 0;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--green-glow), var(--blue-glow));
+    opacity: 0; transition: opacity 0.4s; z-index: 0;
+  }
+  .card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .card:hover::before { opacity: 1; }
+  .card-img-wrap { overflow: hidden; position: relative; z-index: 1; }
+  .card-img {
+    width: 100%; height: 230px; object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .card:hover .card-img { transform: scale(1.06); }
+  .card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .card-tag {
+    position: absolute; top: 16px; left: 16px;
+    padding: 5px 14px; border-radius: 8px;
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.2px; color: #fff;
+    backdrop-filter: blur(8px); z-index: 2;
+  }
+  .card-tag.green { background: rgba(0,100,0,0.85); }
+  .card-tag.blue { background: rgba(0,119,182,0.85); }
+  .card-tag.teal { background: rgba(0,121,107,0.85); }
+  .card-body { padding: 26px; position: relative; z-index: 1; background: var(--bg-alt); }
+  .card-body h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem; font-weight: 700; margin-bottom: 4px;
+  }
+  .card-body .card-subtitle { font-size: 0.82rem; font-weight: 600; color: var(--blue); margin-bottom: 12px; }
+  .card-body p { font-size: 0.9rem; color: var(--text-light); line-height: 1.65; }
+  .card-arrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 18px; font-size: 0.84rem; font-weight: 700;
+    color: var(--green); transition: all 0.3s;
+  }
+  .card-arrow .arrow-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--green-glow); transition: all 0.3s; font-size: 0.85rem;
+  }
+  .card:hover .card-arrow .arrow-icon { background: var(--green); color: #fff; transform: translateX(4px); }
+
+  /* ══════════ SUBPAGE HERO ══════════ */
+  .subpage-hero {
+    position: relative; overflow: hidden;
+    padding: 72px 24px 56px; text-align: center; color: #fff;
+  }
+  .subpage-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E");
+  }
+  .subpage-hero::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+    background: linear-gradient(to top, var(--bg), transparent);
+  }
+  .subpage-hero.green-bg { background: linear-gradient(160deg, #002200, var(--green), #004d40); }
+  .subpage-hero.blue-bg { background: linear-gradient(160deg, #002244, var(--blue), #004d6d); }
+  .subpage-hero.teal-bg { background: linear-gradient(160deg, #002020, #00796b, #004d40); }
+  .subpage-hero.purple-bg { background: linear-gradient(160deg, #1a0033, #6a1b9a, #4a148c); }
+  .subpage-hero .hero-content { position: relative; z-index: 2; }
+  .subpage-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+    font-weight: 800; margin-bottom: 12px;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .subpage-hero p { font-size: 1rem; color: rgba(255,255,255,0.8); max-width: 600px; margin: 0 auto; }
+  .breadcrumb {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 16px;
+  }
+  .breadcrumb a { color: rgba(255,255,255,0.6); text-decoration: none; cursor: pointer; }
+  .breadcrumb a:hover { color: #fff; }
+
+  /* ══════════ CONTENT ══════════ */
+  .content-wrap { max-width: 820px; margin: 0 auto; padding: 48px 24px 80px; position: relative; }
+  .content-wrap h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem; font-weight: 700; color: var(--green);
+    margin: 48px 0 16px; padding-bottom: 10px; position: relative;
+  }
+  .content-wrap h2::after {
+    content: ''; position: absolute; bottom: 0; left: 0;
+    width: 50px; height: 3px; border-radius: 3px;
+    background: linear-gradient(90deg, var(--green), var(--blue));
+  }
+  .content-wrap h3 { font-size: 1.12rem; font-weight: 700; margin: 28px 0 10px; }
+  .content-wrap p { font-size: 0.95rem; color: var(--text-light); margin-bottom: 16px; line-height: 1.78; }
+  .content-wrap ul, .content-wrap ol { padding-left: 24px; margin-bottom: 16px; }
+  .content-wrap li { font-size: 0.95rem; color: var(--text-light); margin-bottom: 8px; line-height: 1.68; }
+  .content-wrap strong { color: var(--text); }
+
+  /* ══════════ IMAGE BLOCKS ══════════ */
+  .img-block {
+    margin: 36px 0; border-radius: var(--radius-lg);
+    overflow: hidden; border: 1px solid var(--border);
+    box-shadow: var(--shadow-md); transition: all 0.3s;
+  }
+  .img-block:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .img-block img { width: 100%; height: 320px; object-fit: cover; display: block; }
+  .img-caption {
+    padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);
+    background: var(--bg-alt); border-top: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .img-caption .caption-icon {
+    width: 20px; height: 20px; border-radius: 4px;
+    background: var(--green-glow); display: flex; align-items: center;
+    justify-content: center; font-size: 0.7rem; flex-shrink: 0; margin-top: 1px;
+  }
+  .img-caption .unsplash-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: var(--blue);
+    display: block; margin-top: 4px;
+    padding: 3px 8px; background: rgba(0,119,182,0.06);
+    border-radius: 4px; width: fit-content;
+  }
+
+  /* ══════════ CALLOUT ══════════ */
+  .callout {
+    background: linear-gradient(135deg, rgba(0,100,0,0.04), rgba(0,119,182,0.04));
+    border-left: 4px solid; border-image: linear-gradient(to bottom, var(--green), var(--blue)) 1;
+    padding: 22px 26px; border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 28px 0; position: relative;
+  }
+  .callout p { margin: 0; font-size: 0.92rem; }
+  .callout strong { color: var(--green); }
+
+  /* ══════════ STAT GRID ══════════ */
+  .stat-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px; margin: 32px 0;
+  }
+  .stat-card {
+    background: var(--bg-alt); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 24px 16px; text-align: center;
+    transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--green), var(--blue));
+  }
+  .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+  .stat-card .number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem; font-weight: 800; color: var(--green);
+  }
+  .stat-card .label { font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
+
+  /* ══════════ TIMELINE ══════════ */
+  .timeline { position: relative; padding-left: 36px; margin: 32px 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 10px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--green), var(--blue), var(--green));
+    border-radius: 2px;
+  }
+  .timeline-item {
+    position: relative; margin-bottom: 32px;
+    padding: 20px 24px; background: var(--bg-alt);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    transition: all 0.3s;
+  }
+  .timeline-item:hover { box-shadow: var(--shadow-md); transform: translateX(4px); }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -32px; top: 24px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 3px var(--green-glow);
+  }
+  .timeline-item .era {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem; font-weight: 600; color: var(--blue); margin-bottom: 6px;
+    padding: 2px 10px; background: var(--blue-glow); border-radius: 6px; display: inline-block;
+  }
+  .timeline-item h4 { font-size: 1.08rem; font-weight: 700; margin-bottom: 8px; }
+  .timeline-item p { font-size: 0.9rem; margin: 0; color: var(--text-light); }
+
+  /* ══════════ DEVICE TABLE ══════════ */
+  .table-wrap {
+    border-radius: var(--radius-lg); overflow: hidden;
+    border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin: 24px 0;
+  }
+  .device-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .device-table th {
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    color: #fff; padding: 14px 18px; text-align: left; font-weight: 600;
+  }
+  .device-table td { padding: 13px 18px; border-bottom: 1px solid var(--border); }
+  .device-table tr:last-child td { border-bottom: none; }
+  .device-table tr:hover { background: rgba(0,119,182,0.03); }
+  .device-type {
+    display: inline-block; padding: 3px 12px;
+    border-radius: 100px; font-size: 0.73rem; font-weight: 700;
+  }
+  .device-type.entrada { background: #e8f5e9; color: var(--green); }
+  .device-type.salida { background: #e3f2fd; color: var(--blue); }
+  .device-type.mixto { background: #fff3e0; color: #e65100; }
+
+  /* ══════════ EXCEL EXERCISES ══════════ */
+  .exercise-card {
+    background: var(--bg-alt); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 28px 32px; margin: 28px 0;
+    position: relative; overflow: hidden; transition: all 0.3s;
+  }
+  .exercise-card:hover { box-shadow: var(--shadow-md); }
+  .exercise-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--green), var(--blue));
+  }
+  .exercise-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; font-weight: 700; color: var(--blue);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+    display: inline-block; padding: 3px 10px;
+    background: var(--blue-glow); border-radius: 6px;
+  }
+  .exercise-card h4 { font-size: 1.08rem; font-weight: 700; margin-bottom: 8px; }
+  .exercise-card > p { font-size: 0.92rem; color: var(--text-light); margin-bottom: 10px; }
+  .formula-tag {
+    display: inline-block; margin: 4px 4px 4px 0;
+    padding: 7px 16px; border-radius: 8px;
+    background: rgba(0,119,182,0.06); border: 1px solid rgba(0,119,182,0.12);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; color: var(--blue); font-weight: 500;
+  }
+  .excel-preview {
+    border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--border); margin: 16px 0;
+  }
+  .excel-preview table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .excel-preview th {
+    background: var(--green); color: #fff;
+    padding: 8px 14px; text-align: center; font-weight: 600; font-size: 0.76rem;
+  }
+  .excel-preview td { padding: 9px 14px; border: 1px solid var(--border); text-align: center; }
+  .excel-preview tr:nth-child(even) { background: rgba(0,100,0,0.02); }
+  .excel-preview .formula-cell {
+    background: #fffde7; color: var(--blue);
+    font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 0.78rem;
+  }
+  .excel-preview .result-row { background: rgba(0,100,0,0.04) !important; font-weight: 600; }
+  .expected-result {
+    margin-top: 12px; padding: 10px 16px;
+    background: rgba(0,100,0,0.04); border-radius: 8px;
+    font-size: 0.85rem; color: var(--text);
+  }
+  .expected-result strong { color: var(--green); }
+
+  /* ══════════ UPLOAD ZONE ══════════ */
+  .upload-zone {
+    margin: 48px 0; padding: 56px 32px;
+    border: 3px dashed rgba(0,100,0,0.2);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, rgba(0,100,0,0.02), rgba(0,119,182,0.02));
+    text-align: center; transition: all 0.3s;
+  }
+  .upload-zone:hover { border-color: var(--green); background: rgba(0,100,0,0.04); }
+  .upload-icon-wrap {
+    width: 72px; height: 72px; margin: 0 auto 16px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--green-glow), var(--blue-glow));
+    font-size: 2rem;
+  }
+  .upload-zone h4 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
+  .upload-zone p { font-size: 0.88rem; color: var(--text-muted); max-width: 460px; margin: 0 auto 16px; }
+  .upload-formats { display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .upload-formats span {
+    padding: 4px 12px; border-radius: 6px; font-size: 0.72rem; font-weight: 700;
+    background: var(--bg); border: 1px solid var(--border); color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* ══════════ CONCLUSION ══════════ */
+  .conclusion {
+    background: linear-gradient(135deg, var(--green), #004d40, var(--blue));
+    color: #fff; padding: 32px 36px;
+    border-radius: var(--radius-lg); margin: 48px 0 0;
+    position: relative; overflow: hidden;
+  }
+  .conclusion::before {
+    content: ''; position: absolute; top: -50px; right: -50px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .conclusion h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; margin-bottom: 12px; color: #fff; position: relative;
+  }
+  .conclusion p { color: rgba(255,255,255,0.88); margin: 0; position: relative; }
+
+  /* ══════════ FOOTER ══════════ */
+  .site-footer {
+    background: linear-gradient(135deg, #111122, #1a1a2e);
+    color: rgba(255,255,255,0.5); text-align: center;
+    padding: 40px 24px; font-size: 0.82rem;
+    border-top: 3px solid; border-image: linear-gradient(90deg, var(--green), var(--blue)) 1;
+  }
+  .footer-brand {
+    font-family: 'Playfair Display', serif; font-weight: 700;
+    font-size: 1.1rem; color: rgba(255,255,255,0.8); margin-bottom: 8px;
+  }
+  .footer-sources { margin-top: 12px; font-size: 0.75rem; color: rgba(255,255,255,0.35); }
+
+  /* ══════════ SCROLL TOP ══════════ */
+  .scroll-top {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 48px; height: 48px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    color: #fff; border: none; cursor: pointer; font-size: 1.1rem;
+    box-shadow: 0 4px 20px rgba(0,100,0,0.3);
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.3s; z-index: 999;
+  }
+  .scroll-top.visible { opacity: 1; transform: translateY(0); }
+  .scroll-top:hover { transform: translateY(-3px); box-shadow: 0 6px 28px rgba(0,100,0,0.4); }
+</style>
+</head>
+<body>
+
+<!-- ═══════ NAVIGATION ═══════ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <div class="nav-logo" onclick="goTo('home')">⚡ Bits, Bytes &amp; Planeta</div>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#" data-page="home" class="active" onclick="goTo('home')">Inicio</a></li>
+      <li><a href="#" data-page="historia" onclick="goTo('historia')">Historia</a></li>
+      <li><a href="#" data-page="desechos" onclick="goTo('desechos')">Desechos Tecnológicos</a></li>
+      <li><a href="#" data-page="dispositivos" onclick="goTo('dispositivos')">Dispositivos E/S</a></li>
+      <li><a href="#" data-page="excel" onclick="goTo('excel')">Ejercicios Excel</a></li>
+    </ul>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════════ PÁGINA: INICIO ══════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-orb orb1"></div>
+    <div class="hero-orb orb2"></div>
+    <div class="hero-orb orb3"></div>
+    <div class="hero-content">
+      <div class="hero-badge"><span class="dot"></span> Blog Educativo · Tecnología &amp; Sociedad</div>
+      <h1>Bits, Bytes <span class="accent">&amp; Planeta</span></h1>
+      <div class="subtitle">Tecnología con conciencia: del circuito al ecosistema</div>
+      <div class="hero-divider"></div>
+      <p>Desde los primeros tubos de vacío del ENIAC hasta la inteligencia artificial en la nube, la informática ha transformado cada rincón de nuestra vida. Pero el progreso también genera una huella invisible: millones de toneladas de basura electrónica amenazan ecosistemas enteros. En este blog explorarás la fascinante evolución del hardware, entenderás el impacto ambiental de los residuos electrónicos con datos reales del Global E-waste Monitor 2024 y dominarás cómo los dispositivos de entrada y salida conectan al ser humano con la máquina. Prepárate para un recorrido que une historia, medio ambiente y tecnología práctica en un solo lugar.</p>
+    </div>
+  </div>
+
+  <div class="cards-section">
+    <div class="section-header">
+      <div class="section-label">Explora los temas</div>
+      <h2>Tres Pilares del Conocimiento Tecnológico</h2>
+    </div>
+    <div class="cards-grid">
+
+      <article class="card" onclick="goTo('historia')">
+        <div class="card-img-wrap">
+          <img class="card-img" src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80" alt="Circuitos y tecnología histórica">
+          <div class="card-overlay"></div>
+          <span class="card-tag green">Historia</span>
+        </div>
+        <div class="card-body">
+          <h3>Del Ábaco a la Inteligencia Artificial</h3>
+          <div class="card-subtitle">Cinco generaciones que cambiaron la humanidad</div>
+          <p>Recorre las cinco generaciones de la computación: desde los enormes tubos de vacío del ENIAC en 1946 hasta los microprocesadores, la computación en la nube y la inteligencia artificial. Descubre cómo cada salto tecnológico redefinió industrias y la vida cotidiana.</p>
+          <span class="card-arrow">Explorar tema <span class="arrow-icon">→</span></span>
+        </div>
+      </article>
+
+      <article class="card" onclick="goTo('desechos')">
+        <div class="card-img-wrap">
+          <img class="card-img" src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&q=80" alt="Residuos electrónicos">
+          <div class="card-overlay"></div>
+          <span class="card-tag blue">Medio Ambiente</span>
+        </div>
+        <div class="card-body">
+          <h3>La Huella Oculta del Progreso</h3>
+          <div class="card-subtitle">62 millones de toneladas de e-waste al año</div>
+          <p>Cada dispositivo que descartas se convierte en un residuo peligroso. Con datos del Global E-waste Monitor 2024, analizamos las toneladas generadas y la proyección a 2030. Conoce la legislación colombiana y las estrategias de reciclaje responsable.</p>
+          <span class="card-arrow">Explorar tema <span class="arrow-icon">→</span></span>
+        </div>
+      </article>
+
+      <article class="card" onclick="goTo('dispositivos')">
+        <div class="card-img-wrap">
+          <img class="card-img" src="https://images.unsplash.com/photo-1527814050087-3793815479db?w=800&q=80" alt="Periféricos de computador">
+          <div class="card-overlay"></div>
+          <span class="card-tag teal">Hardware</span>
+        </div>
+        <div class="card-body">
+          <h3>El Puente entre Humanos y Máquinas</h3>
+          <div class="card-subtitle">Entrada, salida y dispositivos mixtos</div>
+          <p>Teclados, monitores, pantallas táctiles: cada periférico cumple un rol específico en la comunicación humano-computador. Aprende la clasificación completa con ejemplos cotidianos y su evolución tecnológica.</p>
+          <span class="card-arrow">Explorar tema <span class="arrow-icon">→</span></span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ SUB-PÁGINA 1: HISTORIA ═════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="page" id="page-historia">
+  <div class="subpage-hero green-bg">
+    <div class="hero-content">
+      <div class="breadcrumb"><a onclick="goTo('home')">Inicio</a> <span>›</span> <span>Historia</span></div>
+      <h1>Del Ábaco a la IA: La Evolución que Cambió la Humanidad</h1>
+      <p>Un recorrido por las cinco generaciones de computadoras que transformaron la ciencia, la industria y la sociedad.</p>
+    </div>
+  </div>
+  <div class="content-wrap">
+    <p>La historia de las computadoras es, en esencia, la historia de la humanidad buscando formas más rápidas y eficientes de procesar información. En menos de un siglo, pasamos de máquinas que ocupaban habitaciones enteras a procesadores más pequeños que una uña. Comprender esta evolución nos permite entender los cimientos sobre los que se construye la sociedad digital actual.</p>
+
+    <figure class="img-block">
+      <img src="https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?w=800&q=80" alt="Computadora histórica con tubos de vacío">
+      <div class="img-caption">
+        <span class="caption-icon">📷</span>
+        <div>Sala de cómputo de mediados del siglo XX, cuando una sola computadora podía ocupar un edificio completo.
+          <span class="unsplash-hint">Unsplash: "vintage mainframe computer room"</span></div>
+      </div>
+    </figure>
+
+    <h2>Las Cinco Generaciones</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="era">1940 – 1955 · Primera Generación</div>
+        <h4>Tubos de Vacío: Los Gigantes Eléctricos</h4>
+        <p>La primera generación se caracteriza por el uso de <strong>tubos de vacío</strong> como componentes principales. La máquina más emblemática es el <strong>ENIAC</strong> (Electronic Numerical Integrator and Computer), construido en 1946 en la Universidad de Pensilvania. Pesaba más de 27 toneladas, ocupaba 167 m² y consumía 150 kW de electricidad. Se programaban manualmente mediante cables y conmutadores, utilizaban tarjetas perforadas para entrada de datos. Su principal uso fue militar y científico: cálculos balísticos y simulaciones nucleares.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="era">1956 – 1963 · Segunda Generación</div>
+        <h4>Transistores: Más Pequeños, Más Rápidos</h4>
+        <p>El <strong>transistor</strong>, inventado en 1947 en los Bell Labs, reemplazó al tubo de vacío. Eran más pequeños, generaban menos calor y eran más confiables. Computadoras como el IBM 7094 y el UNIVAC II aprovecharon esta tecnología. Surgieron lenguajes de alto nivel como FORTRAN y COBOL, haciendo la computación accesible más allá de los ingenieros eléctricos.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="era">1964 – 1971 · Tercera Generación</div>
+        <h4>Circuitos Integrados: La Miniaturización</h4>
+        <p>El <strong>circuito integrado</strong> (chip de silicio) permitió integrar cientos de transistores en una sola pieza. El <strong>IBM System/360</strong> (1964), una familia de computadoras compatibles entre sí, revolucionó la industria. Apareció la multiprogramación, los sistemas operativos se sofisticaron y nacieron las primeras redes de comunicación entre computadoras.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="era">1971 – 1980 · Cuarta Generación</div>
+        <h4>Microprocesadores: La Computación Personal</h4>
+        <p>El <strong>microprocesador</strong> integró miles de circuitos en un solo chip. El <strong>Intel 4004</strong> (1971) fue el primero comercial, con 2.300 transistores. El <strong>Apple II</strong> (1977) y el <strong>IBM PC</strong> (1981) democratizaron la informática. Surgieron hojas de cálculo como VisiCalc y las primeras interfaces gráficas.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="era">1980 – Actualidad · Quinta Generación</div>
+        <h4>IA, Nube y Computación Ubicua</h4>
+        <p>Se define por la <strong>inteligencia artificial</strong>, el procesamiento masivo en paralelo, la computación en la nube y la conectividad global. Los procesadores actuales contienen miles de millones de transistores. Internet, los dispositivos móviles, el aprendizaje automático y los modelos de lenguaje han transformado la manera en que trabajamos y nos comunicamos.</p>
+      </div>
+    </div>
+
+    <figure class="img-block">
+      <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80" alt="Centro de datos moderno">
+      <div class="img-caption">
+        <span class="caption-icon">📷</span>
+        <div>Centro de datos contemporáneo: la computación se distribuye en miles de servidores interconectados.
+          <span class="unsplash-hint">Unsplash: "modern data center server room"</span></div>
+      </div>
+    </figure>
+
+    <div class="conclusion">
+      <h3>Conclusión</h3>
+      <p>En menos de ochenta años, la computación pasó de ocupar edificios completos a caber en el bolsillo. Cada generación resolvió las limitaciones de la anterior y abrió posibilidades que antes eran ciencia ficción. Entender esta evolución es clave para comprender la tecnología actual y las decisiones que moldearán el futuro digital.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ SUB-PÁGINA 2: DESECHOS ════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="page" id="page-desechos">
+  <div class="subpage-hero blue-bg">
+    <div class="hero-content">
+      <div class="breadcrumb"><a onclick="goTo('home')">Inicio</a> <span>›</span> <span>Desechos Tecnológicos</span></div>
+      <h1>La Huella Oculta del Progreso: Desechos Tecnológicos (RAEE)</h1>
+      <p>Cada avance tecnológico deja un rastro de residuos. Conoce los datos reales y qué podemos hacer.</p>
+    </div>
+  </div>
+  <div class="content-wrap">
+    <p>Los Residuos de Aparatos Eléctricos y Electrónicos (RAEE) constituyen el flujo de desechos de más rápido crecimiento en el mundo. Cada teléfono, laptop o electrodoméstico descartado sin tratamiento adecuado libera sustancias tóxicas — plomo, mercurio, cadmio — que contaminan suelos, aguas y aire. Al mismo tiempo, contienen materiales valiosos como oro, plata, cobre y tierras raras recuperables mediante reciclaje formal.</p>
+
+    <figure class="img-block">
+      <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&q=80" alt="Desechos electrónicos">
+      <div class="img-caption">
+        <span class="caption-icon">📷</span>
+        <div>Vertedero de residuos electrónicos: monitores, teclados y circuitos sin tratamiento adecuado.
+          <span class="unsplash-hint">Unsplash: "electronic waste pile e-waste"</span></div>
+      </div>
+    </figure>
+
+    <h2>Las Cifras Globales: Global E-waste Monitor 2024</h2>
+    <p>Según el <strong>Global E-waste Monitor 2024</strong>, publicado por la ONU (UNU/UNITAR), la UIT y la ISWA:</p>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="number">62 Mt</div><div class="label">Toneladas generadas en 2022</div></div>
+      <div class="stat-card"><div class="number">7,8 kg</div><div class="label">Por persona a nivel global</div></div>
+      <div class="stat-card"><div class="number">22,3%</div><div class="label">Reciclado formalmente</div></div>
+      <div class="stat-card"><div class="number">82 Mt</div><div class="label">Proyección para 2030</div></div>
+    </div>
+
+    <p>En 2022 se generaron <strong>62 millones de toneladas métricas</strong> de residuos electrónicos, equivalentes a 7,8 kg por persona. Solo el <strong>22,3%</strong> fue reciclado por canales formales. El restante 77,7% termina en vertederos, es incinerado informalmente o su destino es desconocido. Para 2030 se proyectan <strong>82 millones de toneladas</strong>, un incremento del 32%.</p>
+
+    <div class="callout">
+      <p><strong>Dato clave:</strong> Los RAEE representan apenas el 2% de los desechos sólidos mundiales, pero contienen hasta el 70% de los metales pesados tóxicos en vertederos (Fuente: ONU Medio Ambiente).</p>
+    </div>
+
+    <h2>Impacto Ambiental y en la Salud</h2>
+    <p>El plomo y mercurio de soldaduras y pantallas causan daño neurológico y renal. El cadmio de baterías recargables es cancerígeno. Los retardantes de llama bromados en carcasas plásticas son disruptores endocrinos. En países con reciclaje informal — como la quema de cables para extraer cobre — las comunidades presentan niveles elevados de contaminantes en sangre, especialmente niños.</p>
+
+    <figure class="img-block">
+      <img src="https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=800&q=80" alt="Reciclaje de electrónicos">
+      <div class="img-caption">
+        <span class="caption-icon">📷</span>
+        <div>Proceso de reciclaje formal: separación controlada para recuperar materiales valiosos.
+          <span class="unsplash-hint">Unsplash: "electronics recycling circuit board"</span></div>
+      </div>
+    </figure>
+
+    <h2>Marco Legal en Colombia: Resolución 851 de 2022</h2>
+    <p>La <strong>Resolución 851 de 2022</strong> del Ministerio de Ambiente y Desarrollo Sostenible establece la <strong>Responsabilidad Extendida del Productor (REP)</strong>, obligando a fabricantes e importadores a gestionar sus productos al final de su vida útil.</p>
+    <ul>
+      <li><strong>Metas de recolección:</strong> Metas progresivas de recolección y gestión ambiental de RAEE.</li>
+      <li><strong>Sistemas de recolección selectiva:</strong> Puntos de acopio accesibles, campañas de posconsumo y alianzas con gestores certificados.</li>
+      <li><strong>Categorías cubiertas:</strong> Informática, telecomunicaciones, electrodomésticos, herramientas, juguetes electrónicos y dispositivos médicos.</li>
+      <li><strong>Trazabilidad:</strong> Registro documental desde la recolección hasta el tratamiento final.</li>
+    </ul>
+
+    <div class="callout">
+      <p><strong>Importante:</strong> Antes de desechar dispositivos, busca puntos de recolección autorizados. En Colombia, programas como "Ecolecta" y campañas de Samsung, HP y Lenovo ofrecen canales gratuitos.</p>
+    </div>
+
+    <div class="conclusion">
+      <h3>Conclusión</h3>
+      <p>La basura electrónica es una crisis silenciosa que crece con nuestra dependencia tecnológica. Marcos legales como la Resolución 851/2022 sientan bases, pero cada consumidor debe informarse, entregar sus dispositivos en puntos autorizados y exigir transparencia en la cadena de reciclaje.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ SUB-PÁGINA 3: DISPOSITIVOS ════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="page" id="page-dispositivos">
+  <div class="subpage-hero teal-bg">
+    <div class="hero-content">
+      <div class="breadcrumb"><a onclick="goTo('home')">Inicio</a> <span>›</span> <span>Dispositivos E/S</span></div>
+      <h1>El Puente entre Humanos y Máquinas: Dispositivos de E/S</h1>
+      <p>Cómo los periféricos permiten la comunicación bidireccional entre el usuario y el computador.</p>
+    </div>
+  </div>
+  <div class="content-wrap">
+    <p>Para que un computador sea útil, necesita comunicarse con el mundo exterior. Los <strong>dispositivos de entrada y salida</strong> (periféricos) son el puente que conecta al ser humano con la máquina. Sin ellos, un procesador sería un chip aislado. Entender su clasificación es fundamental para cualquier persona que trabaje con tecnología.</p>
+
+    <figure class="img-block">
+      <img src="https://images.unsplash.com/photo-1527814050087-3793815479db?w=800&q=80" alt="Periféricos de computador">
+      <div class="img-caption">
+        <span class="caption-icon">📷</span>
+        <div>Estación de trabajo con periféricos de entrada y salida conectados.
+          <span class="unsplash-hint">Unsplash: "computer peripherals keyboard mouse monitor desk"</span></div>
+      </div>
+    </figure>
+
+    <h2>Dispositivos de Entrada</h2>
+    <p>Permiten al usuario enviar datos, comandos o señales hacia el computador. Convierten información del mundo físico en señales digitales.</p>
+    <ul>
+      <li><strong>Teclado:</strong> El más universal. Ingreso de texto, comandos y atajos. Tipos: mecánicos, membrana, ergonómicos y virtuales.</li>
+      <li><strong>Mouse (ratón):</strong> Señalador que detecta movimiento en dos dimensiones. Sensores ópticos o láser.</li>
+      <li><strong>Micrófono:</strong> Capta ondas sonoras y las convierte en señales digitales. Comunicación por voz, dictado y asistentes virtuales.</li>
+      <li><strong>Webcam:</strong> Captura imagen y video en tiempo real. Videoconferencias, streaming y reconocimiento facial.</li>
+      <li><strong>Escáner:</strong> Digitaliza documentos físicos e imágenes convirtiéndolos en archivos digitales.</li>
+    </ul>
+
+    <h2>Dispositivos de Salida</h2>
+    <p>Toman datos procesados y los presentan al usuario en forma visual, auditiva o física.</p>
+    <ul>
+      <li><strong>Monitor:</strong> Salida visual por excelencia. Tecnologías: LCD, LED, OLED, AMOLED.</li>
+      <li><strong>Impresora:</strong> Copias en papel. Tipos: inyección de tinta, láser, térmicas y 3D.</li>
+      <li><strong>Parlantes:</strong> Convierten señales eléctricas en ondas sonoras audibles.</li>
+      <li><strong>Proyector:</strong> Proyecta imágenes ampliadas sobre una superficie plana.</li>
+    </ul>
+
+    <h2>Dispositivos Mixtos (Entrada y Salida)</h2>
+    <p>Cumplen <strong>ambas funciones simultáneamente</strong>, enviando y recibiendo datos.</p>
+    <ul>
+      <li><strong>Pantalla táctil:</strong> Monitor (salida) + detección de toques (entrada). Estándar en smartphones y tablets.</li>
+      <li><strong>Impresora multifunción:</strong> Impresora (salida) + escáner (entrada) + fax.</li>
+      <li><strong>Headset:</strong> Auriculares (salida) + micrófono (entrada). Audio bidireccional.</li>
+      <li><strong>USB / Disco externo:</strong> Lectura (entrada) y escritura (salida) de datos.</li>
+    </ul>
+
+    <h2>Tabla Resumen de Clasificación</h2>
+    <div class="table-wrap">
+      <table class="device-table">
+        <thead><tr><th>Dispositivo</th><th>Tipo</th><th>Función principal</th></tr></thead>
+        <tbody>
+          <tr><td>Teclado</td><td><span class="device-type entrada">Entrada</span></td><td>Ingreso de texto y comandos</td></tr>
+          <tr><td>Mouse</td><td><span class="device-type entrada">Entrada</span></td><td>Señalización y selección</td></tr>
+          <tr><td>Micrófono</td><td><span class="device-type entrada">Entrada</span></td><td>Captura de audio y voz</td></tr>
+          <tr><td>Webcam</td><td><span class="device-type entrada">Entrada</span></td><td>Captura de imagen y video</td></tr>
+          <tr><td>Escáner</td><td><span class="device-type entrada">Entrada</span></td><td>Digitalización de documentos</td></tr>
+          <tr><td>Monitor</td><td><span class="device-type salida">Salida</span></td><td>Visualización de información</td></tr>
+          <tr><td>Impresora</td><td><span class="device-type salida">Salida</span></td><td>Impresión en papel</td></tr>
+          <tr><td>Parlantes</td><td><span class="device-type salida">Salida</span></td><td>Reproducción de audio</td></tr>
+          <tr><td>Proyector</td><td><span class="device-type salida">Salida</span></td><td>Proyección de imagen</td></tr>
+          <tr><td>Pantalla táctil</td><td><span class="device-type mixto">Mixto</span></td><td>Visualización + toques</td></tr>
+          <tr><td>Multifunción</td><td><span class="device-type mixto">Mixto</span></td><td>Impresión + escaneo</td></tr>
+          <tr><td>Headset</td><td><span class="device-type mixto">Mixto</span></td><td>Audio bidireccional</td></tr>
+          <tr><td>USB / Disco</td><td><span class="device-type mixto">Mixto</span></td><td>Lectura y escritura</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure class="img-block">
+      <img src="https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80" alt="Pantalla táctil en uso">
+      <div class="img-caption">
+        <span class="caption-icon">📷</span>
+        <div>Las pantallas táctiles: el ejemplo más cotidiano de dispositivo mixto.
+          <span class="unsplash-hint">Unsplash: "touchscreen tablet hands interaction"</span></div>
+      </div>
+    </figure>
+
+    <div class="conclusion">
+      <h3>Conclusión</h3>
+      <p>Los dispositivos de entrada y salida hacen posible la interacción humano-computador. La tendencia apunta hacia periféricos más integrados y naturales — voz, gestos, realidad aumentada — que difuminan la línea entre entrada y salida.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ PÁGINA: EJERCICIOS EXCEL ══════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="page" id="page-excel">
+  <div class="subpage-hero purple-bg">
+    <div class="hero-content">
+      <div class="breadcrumb"><a onclick="goTo('home')">Inicio</a> <span>›</span> <span>Ejercicios Excel</span></div>
+      <h1>Ejercicios Básicos en Microsoft Excel</h1>
+      <p>Domina las fórmulas esenciales: suma, resta, porcentajes y redondeo con ejercicios paso a paso.</p>
+    </div>
+  </div>
+  <div class="content-wrap">
+    <p>Microsoft Excel es una de las herramientas más utilizadas en el mundo académico y laboral. Dominar sus fórmulas básicas te permitirá organizar datos, realizar cálculos automáticos y presentar información profesionalmente. Lee cada ejercicio, abre tu hoja de cálculo y aplica las fórmulas indicadas.</p>
+
+    <div class="callout">
+      <p><strong>Nota:</strong> En Excel en español, los argumentos se separan con punto y coma (<code>;</code>) en lugar de coma. Ejemplo: <code>=SUMA(B2;B3;B4)</code> o <code>=SUMA(B2:B8)</code>.</p>
+    </div>
+
+    <!-- Ejercicio 1 -->
+    <div class="exercise-card">
+      <div class="exercise-number">Ejercicio 01 · Suma</div>
+      <h4>Suma de Ventas Semanales</h4>
+      <p>Una tienda registró ventas diarias: Lunes $150.000, Martes $230.000, Miércoles $180.000, Jueves $310.000, Viernes $275.000, Sábado $420.000, Domingo $195.000.</p>
+      <p><strong>Instrucciones:</strong> Ingresa cada valor en B2:B8. En B9, usa SUMA para obtener el total semanal.</p>
+      <div class="formula-tag">=SUMA(B2:B8)</div>
+      <div class="excel-preview">
+        <table>
+          <thead><tr><th>A</th><th>B</th></tr></thead>
+          <tbody>
+            <tr><td>Lunes</td><td>$150.000</td></tr>
+            <tr><td>Martes</td><td>$230.000</td></tr>
+            <tr><td>Miércoles</td><td>$180.000</td></tr>
+            <tr><td>Jueves</td><td>$310.000</td></tr>
+            <tr><td>Viernes</td><td>$275.000</td></tr>
+            <tr><td>Sábado</td><td>$420.000</td></tr>
+            <tr><td>Domingo</td><td>$195.000</td></tr>
+            <tr class="result-row"><td><strong>TOTAL</strong></td><td class="formula-cell">=SUMA(B2:B8)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="expected-result"><strong>Resultado esperado:</strong> $1.760.000</div>
+    </div>
+
+    <!-- Ejercicio 2 -->
+    <div class="exercise-card">
+      <div class="exercise-number">Ejercicio 02 · Resta</div>
+      <h4>Control de Presupuesto Mensual</h4>
+      <p>Presupuesto: $800.000. Gastos: Arriendo $350.000, Alimentación $180.000, Transporte $75.000, Materiales $60.000.</p>
+      <p><strong>Instrucciones:</strong> Presupuesto en B1, gastos en B3:B6. Total gastos en B8 con SUMA. Saldo en B9 restando gastos al presupuesto.</p>
+      <div class="formula-tag">=SUMA(B3:B6)</div>
+      <div class="formula-tag">=B1-B8</div>
+      <div class="excel-preview">
+        <table>
+          <thead><tr><th>A</th><th>B</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Presupuesto</strong></td><td>$800.000</td></tr>
+            <tr><td colspan="2" style="background:#f5f5f5;font-size:0.72rem;color:#aaa;text-align:center;">— Gastos —</td></tr>
+            <tr><td>Arriendo</td><td>$350.000</td></tr>
+            <tr><td>Alimentación</td><td>$180.000</td></tr>
+            <tr><td>Transporte</td><td>$75.000</td></tr>
+            <tr><td>Materiales</td><td>$60.000</td></tr>
+            <tr class="result-row"><td><strong>Total Gastos</strong></td><td class="formula-cell">=SUMA(B3:B6)</td></tr>
+            <tr class="result-row"><td><strong>Saldo</strong></td><td class="formula-cell">=B1-B8</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="expected-result"><strong>Resultado esperado:</strong> Total gastos = $665.000 · Saldo = $135.000</div>
+    </div>
+
+    <!-- Ejercicio 3 -->
+    <div class="exercise-card">
+      <div class="exercise-number">Ejercicio 03 · Porcentajes</div>
+      <h4>Cálculo de Descuentos en Productos</h4>
+      <p>Descuento del 15% sobre: Laptop $2.500.000, Teclado $120.000, Mouse $85.000, Monitor $950.000.</p>
+      <p><strong>Instrucciones:</strong> Precios en B2:B5. Columna C = descuento (precio × 15%). Columna D = precio final (precio − descuento).</p>
+      <div class="formula-tag">=B2*15%</div>
+      <div class="formula-tag">=B2-C2</div>
+      <div class="excel-preview">
+        <table>
+          <thead><tr><th>A</th><th>B (Precio)</th><th>C (Dcto.)</th><th>D (Final)</th></tr></thead>
+          <tbody>
+            <tr><td>Laptop</td><td>$2.500.000</td><td class="formula-cell">=B2*15%</td><td class="formula-cell">=B2-C2</td></tr>
+            <tr><td>Teclado</td><td>$120.000</td><td class="formula-cell">=B3*15%</td><td class="formula-cell">=B3-C3</td></tr>
+            <tr><td>Mouse</td><td>$85.000</td><td class="formula-cell">=B4*15%</td><td class="formula-cell">=B4-C4</td></tr>
+            <tr><td>Monitor</td><td>$950.000</td><td class="formula-cell">=B5*15%</td><td class="formula-cell">=B5-C5</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="expected-result"><strong>Resultado esperado (Laptop):</strong> Descuento = $375.000 · Precio final = $2.125.000</div>
+    </div>
+
+    <!-- Ejercicio 4 -->
+    <div class="exercise-card">
+      <div class="exercise-number">Ejercicio 04 · Redondeo</div>
+      <h4>Redondeo de Promedios Académicos</h4>
+      <p>Notas: Matemáticas 3,87 — Español 4,23 — Ciencias 3,56 — Historia 4,71. Calcula promedio y redondea a 1 decimal.</p>
+      <p><strong>Instrucciones:</strong> Notas en B2:B5. Promedio en B7. Redondeo en B8 con 1 decimal.</p>
+      <div class="formula-tag">=PROMEDIO(B2:B5)</div>
+      <div class="formula-tag">=REDONDEAR(B7;1)</div>
+      <div class="excel-preview">
+        <table>
+          <thead><tr><th>A</th><th>B</th></tr></thead>
+          <tbody>
+            <tr><td>Matemáticas</td><td>3,87</td></tr>
+            <tr><td>Español</td><td>4,23</td></tr>
+            <tr><td>Ciencias</td><td>3,56</td></tr>
+            <tr><td>Historia</td><td>4,71</td></tr>
+            <tr class="result-row"><td><strong>Promedio</strong></td><td class="formula-cell">=PROMEDIO(B2:B5)</td></tr>
+            <tr class="result-row"><td><strong>Redondeado</strong></td><td class="formula-cell">=REDONDEAR(B7;1)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="expected-result"><strong>Resultado esperado:</strong> Promedio = 4,0925 · Redondeado = 4,1</div>
+    </div>
+
+    <!-- Ejercicio 5 -->
+    <div class="exercise-card">
+      <div class="exercise-number">Ejercicio 05 · Desafío Combinado</div>
+      <h4>Nómina Simplificada con Retención</h4>
+      <p>Nómina de 3 empleados. Retención del 8% (4% salud + 4% pensión). Calcula el salario neto.</p>
+      <div class="formula-tag">=B2*8%</div>
+      <div class="formula-tag">=B2-C2</div>
+      <div class="formula-tag">=SUMA(B2:B4)</div>
+      <div class="excel-preview">
+        <table>
+          <thead><tr><th>A</th><th>B (Bruto)</th><th>C (Ret. 8%)</th><th>D (Neto)</th></tr></thead>
+          <tbody>
+            <tr><td>Ana García</td><td>$1.800.000</td><td class="formula-cell">=B2*8%</td><td class="formula-cell">=B2-C2</td></tr>
+            <tr><td>Luis Pérez</td><td>$2.350.000</td><td class="formula-cell">=B3*8%</td><td class="formula-cell">=B3-C3</td></tr>
+            <tr><td>María López</td><td>$3.100.000</td><td class="formula-cell">=B4*8%</td><td class="formula-cell">=B4-C4</td></tr>
+            <tr class="result-row"><td><strong>TOTAL</strong></td><td class="formula-cell">=SUMA(B2:B4)</td><td class="formula-cell">=SUMA(C2:C4)</td><td class="formula-cell">=SUMA(D2:D4)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="expected-result"><strong>Resultado esperado (Ana):</strong> Retención = $144.000 · Neto = $1.656.000</div>
+    </div>
+
+    <!-- ZONA DE CARGA -->
+    <div class="upload-zone">
+      <div class="upload-icon-wrap">📊</div>
+      <h4>Espacio para tu Archivo de Excel</h4>
+      <p>Aquí puedes insertar tu archivo .xlsx con los ejercicios resueltos. En Wix, reemplaza este bloque por un elemento de <strong>"Archivo descargable"</strong> o un <strong>"Botón de carga"</strong> desde el editor.</p>
+      <div class="upload-formats">
+        <span>.xlsx</span>
+        <span>.xls</span>
+        <span>.csv</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong>Consejo:</strong> Practica cada ejercicio en una hoja separada dentro de un mismo libro de Excel. Nombra cada hoja (ej: "Ej01-Suma", "Ej02-Resta") para mantener tu archivo organizado.</p>
+    </div>
+
+    <div class="conclusion">
+      <h3>Conclusión</h3>
+      <p>Estas fórmulas básicas — SUMA, resta aritmética, porcentajes y REDONDEAR — son el fundamento de Excel. Dominarlas te permitirá abordar tareas más complejas como tablas dinámicas, gráficos y funciones condicionales. La clave está en la práctica constante.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer class="site-footer">
+  <div class="footer-brand">⚡ Bits, Bytes &amp; Planeta</div>
+  <p>Blog Educativo · Tecnología, Medio Ambiente y Ofimática</p>
+  <div class="footer-sources">Fuentes: Global E-waste Monitor 2024 (ONU/UNITAR) · Resolución 851/2022 MinAmbiente Colombia · Computer History Museum</div>
+</footer>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    a.classList.toggle('active', a.dataset.page === page);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  closeMenu();
+}
+function toggleMenu() {
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('navLinks').classList.toggle('open');
+}
+function closeMenu() {
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('navLinks').classList.remove('open');
+}
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 10);
+  document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 400);
+});
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', e => e.preventDefault());
+});
+</script>
+</body>
+</html>
